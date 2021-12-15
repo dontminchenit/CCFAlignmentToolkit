@@ -1,16 +1,14 @@
 import ants
-#help(ants.write_transform)
-#help(ants.registration)
 from glob import glob
 from pathlib import Path
 import os
 
-t=glob("/Users/min/Documents/ResearchResults/AllenInstitute/fMost/ApplyAtlasTransforms/*.nii.gz")
+#t=glob("/Users/min/Documents/ResearchResults/AllenInstitute/fMost/ApplyAtlasTransforms/*.nii.gz")
 
 fixed_fn = "/Users/min/Documents/ResearchResults/AllenInstitute/fMost/ApplyAtlasTransforms/AnnotationRegistrationLabel3/CCFTemplate25um_uint16.nii.gz"
 out_dir = "/Users/min/Documents/ResearchResults/AllenInstitute/fMost/ApplyAtlasTransforms/Warped"
 warp_dir = "/Users/min/Documents/ResearchResults/AllenInstitute/fMost/ApplyAtlasTransforms/out5"
-for x in t:
+def ApplyTransformTofMOST():
     print(x)
     outname = Path(Path(x).stem).stem
     print(f'{out_dir}/{outname}_WarpedToCCF.nii.gz')
@@ -23,9 +21,3 @@ for x in t:
                                      verbose=True   
                                     )
     ants.image_write(warped, f'{out_dir}/{outname}_WarpedToCCF.nii.gz')
-
-#tx = ants.new_ants_transform(dimension=2)
-#tx.set_parameters((0.9,0,0,1.1,10,11))
-#print(tx)
-#ants.write_transform(tx, './tx.mat')
-#tx2 = ants.read_transform('./tx.mat')
