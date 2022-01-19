@@ -3,21 +3,39 @@ from glob import glob
 from pathlib import Path
 import os
 
-#t=glob("/Users/min/Documents/ResearchResults/AllenInstitute/fMost/ApplyAtlasTransforms/*.nii.gz")
+def ApplyTransformTofMOST(fMOSTFile, ImgTofMOSTAtlasWarpDir, fMOSTtoCCFAtlasDir, outDir):
 
-fixed_fn = "/Users/min/Documents/ResearchResults/AllenInstitute/fMost/ApplyAtlasTransforms/AnnotationRegistrationLabel3/CCFTemplate25um_uint16.nii.gz"
-out_dir = "/Users/min/Documents/ResearchResults/AllenInstitute/fMost/ApplyAtlasTransforms/Warped"
-warp_dir = "/Users/min/Documents/ResearchResults/AllenInstitute/fMost/ApplyAtlasTransforms/out5"
-def ApplyTransformTofMOST():
-    print(x)
-    outname = Path(Path(x).stem).stem
-    print(f'{out_dir}/{outname}_WarpedToCCF.nii.gz')
-    fixed = ants.image_read(fixed_fn)
-    moving = ants.image_read(x)
-    warped = ants.apply_transforms(fixed=fixed,
+    #load CCF (final space) and transform between fMOST atlas and CCF
+    fMOST_template_fn = f'{fMOSTtoCCFAtlasDir}/AvgfMOSTAtlas25um_v3_uint16.nii.gz'
+    CCF_template_fn = f'{fMOSTtoCCFAtlasDir}/CCFTemplate25um_uint16.nii.gz'
+    fMOSTtoCCFWarpDir = f'{fMOSTtoCCFAtlasDir}/fMOSTtoCCFWarp'
+
+    print(fMOSTFile)
+    outname = Path(Path(fMOSTFile).stem).stem
+    print(f'{outDir}/{outname}_WarpedToCCF.nii.gz')
+    
+    fMOST_template = ants.image_read(fMOST_template_fn)
+    moving = ants.image_read(fMOSTFile)
+    
+    #warp to fMOST atlas space
+    warpedTofMOST = ants.apply_transforms(fixed=fMOST_template,
                                      moving=moving,
-                                     transformlist=[f'{warp_dir}/0GenericAffine.mat', f'{warp_dir}/1Warp.nii.gz'],
+                                     transformlist=[f'{ImgTofMOSTAtlasWarpDir}/{outname}_fwdTransformTofMOST.nii.gz', f'{ImgTofMOSTAtlasWarpDir}/{outname}_affineMtxTofMOST.mat'],
                                      whichtoinvert=[False, False],
                                      verbose=True   
                                     )
-    ants.image_write(warped, f'{out_dir}/{outname}_WarpedToCCF.nii.gz')
+
+    ants.image_write(warpedTofMOST, f'{outDir}/{outname}_WarpedTofMOST.nii.gz')
+    
+    CCF_template = ants.image_read(CCF_template_fn)
+    #warp to CCF space
+    #Tlist=[f'{fMOSTtoCCFWarpDir}/0GenericAffine.mat', f'{fMOSTtoCCFWarpDir}/1Warp.nii.gz']
+    Tlist=[f'{fMOSTtoCCFWarpDir}/fMOSTtoCCFfwdTransform.nii.gz']#we now use concat'd transforms, switch to above to change back
+    warpedToCCF = ants.apply_transforms(fixed=CCF_template,
+                                     moving=warpedTofMOST,
+                                     transformlist=Tlist,
+                                     whichtoinvert=[False],
+                                     verbose=True   
+                                    )
+
+    ants.image_write(warpedToCCF, f'{outDir}/{outname}_WarpedToCCF.nii.gz')
