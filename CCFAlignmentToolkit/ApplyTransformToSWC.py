@@ -4,6 +4,7 @@ from pathlib import Path
 import numpy as np
 import os
 import pandas as pd
+import SimpleITK as sitk
 
 #t=glob("/Users/min/Dropbox (Personal)/Research/Projects/CCFAlignmentToolkit/Resources/TestData/*.swc")
 #fMOSTFile = '/Volumes/My Passport/fMOST/Transfer_12_15_2021/DeformNeurons/ImageChain/1_Downsampled/mouse182724red_xy32z8.nii.gz'
@@ -11,7 +12,7 @@ import pandas as pd
 #out_dir = "/Users/min/Documents/ResearchResults/AllenInstitute/fMost/ApplyAtlasTransforms/Warped"
 #warp_dir = "/Users/min/Documents/ResearchResults/AllenInstitute/fMost/ApplyAtlasTransforms/out5"
 
-def ApplyTransformToSWC(SWCFile, fMOSTFile, ImgTofMOSTAtlasWarpDir, fMOSTtoCCFAtlasDir, outDir):
+def ApplyTransformToSWC(SWCFile, fMOSTFile, OrientImgFile, ImgTofMOSTAtlasWarpDir, fMOSTtoCCFAtlasDir, outDir, verbose=0):
 
     fMOSTtoCCFWarpDir = f'{fMOSTtoCCFAtlasDir}/fMOSTtoCCFWarp'
 
@@ -30,38 +31,91 @@ def ApplyTransformToSWC(SWCFile, fMOSTFile, ImgTofMOSTAtlasWarpDir, fMOSTtoCCFAt
     y=SWCFile[:,3]/(32*(25/10));#dim1
     z=SWCFile[:,4]/(8*(25/10));#dim3
 
+    x2=SWCFile[:,2]#dim2
+    y2=SWCFile[:,3]#dim1
+    z2=SWCFile[:,4]#dim3
+
+    imageIn = sitk.ReadImage(OrientImgFile)
+    imageIn2 = sitk.ReadImage(fMOSTFile)
+    print(OrientImgFile)
+    print(imageIn.GetDirection())
+    print(imageIn.GetSpacing())
+    print(imageIn.GetSize())
+    print(fMOSTFile)
+    print(imageIn2.GetDirection())
+    print(imageIn2.GetSpacing())
+    print(imageIn2.GetSize())
+    print('swc-x:' + str(x2[0]))
+    print('swc-y:' + str(y2[0]))
+    print('swc-z:' + str(z2[0]))
+    print('Physical Coordinates (OrientImg):' + str(imageIn.TransformContinuousIndexToPhysicalPoint((x2[0],y2[0],z2[0]))))
+    #print(imageIn2.TransformContinuousIndexToPhysicalPoint((x[0],y[0],z[0])))
+    print('Pixel Coordinate (OrientImg):' + str(imageIn.TransformPhysicalPointToContinuousIndex(imageIn.TransformContinuousIndexToPhysicalPoint((x2[0],y2[0],z2[0])))))
+    print('Pixel Coordinate (DownsampleImg):' + str(imageIn2.TransformPhysicalPointToContinuousIndex(imageIn.TransformContinuousIndexToPhysicalPoint((x2[0],y2[0],z2[0])))))
+
     #load fMOST IMAGE
     outname = Path(Path(fMOSTFile).stem).stem
-    im=ants.image_read(fMOSTFile);
-    ImageDim = im.numpy().shape
+    #im=ants.image_read(fMOSTFile);
+    #im2=ants.image_read(OrientImgFile);
+    #print(ants.get_orientation(im));
+    #print(ants.get_orientation(im2));
+    #ImageDim = im.numpy().shape
     
     #Force a LPI orientations (determined manually).
     #in native FMOST Image dim1-LtoR, dim2=StoI, dim3=AtoP
     #in swc coordinates dim1-StoI, dim2-LtoR, dim3=AtoP 
 
     #Sub 182724 flip all 3 orientations and 
-    d1=ImageDim[0] - y - 1;# this is corect, second dimension of swc correspond to first dimension of image. 
-    d2=ImageDim[1] - x - 1;# this is corect, first dimension of swc correspond to second dimension of image.
-    d3=ImageDim[2] - z - 1;
+    #d1=ImageDim[0] - y - 1;# this is corect, second dimension of swc correspond to first dimension of image. 
+    #d2=ImageDim[1] - x - 1;# this is corect, first dimension of swc correspond to second dimension of image.
+    #d3=ImageDim[2] - z - 1;
     
-    #So now in reoriented Image dim1-RtoL, dim2=ItoS, dim3=PtoA
+    #print(d1[0])
+    #print(d2[0])
+    #print(d3[0])
+    #print(imageIn.TransformIndexToPhysicalPoint((255,501,43)))
+    
+#So now in reoriented Image dim1-RtoL, dim2=ItoS, dim3=PtoA
     #Swap dim2 and dim2, (PtoA and ItoS directions)
-    e1 = d1
-    e2 = d3
-    e3 = d2
+    #e1 = d1
+    #e2 = d3
+    #e3 = d2
+
 
     #now apply resolution to bring to physical space
     #and negate X and Y to move to ITK WORLD SPACE
-    x=-e1*.025;
-    y=-e2*.025;
-    z=e3*.025;
-    t=e1;#last dimension is just one since we don't have dim4
-    t[:] = 1;
+    #x=-e1*.025;
+    #y=-e2*.025;
+    #z=e3*.025;
+    #t=e1;#last dimension is just one since we don't have dim4
+    #t[:] = 1;
+
+    x=x2.copy()
+    y=y2.copy()
+    z=z2.copy()
+    t=x.copy()
+
+    length = len(x)
+
+    print(length)
+    for k in range(length):
+        worldPt = imageIn.TransformContinuousIndexToPhysicalPoint((x2[k],y2[k],z2[k]))
+        x[k]=worldPt[0]
+        y[k]=worldPt[1]
+        z[k]=worldPt[2] 
+        t[k]=1
+        #print(worldPt) 
+        #print(x[k])
+        #print(y[k])
+        #print(z[k])
 
     #create a dataframe with points
-    d = {'x': x, 'y': y, 'z': z, 't':t}
-    pts = pd.DataFrame(data=d)
+    #d = {'x': x, 'y': y, 'z': z, 't':t}
+    #pts = pd.DataFrame(data=d,index=[1])
+    
+    pts = pd.DataFrame({'x': x, 'y': y, 'z': z, 't': t})
 
+    print(pts)
     #apply transform from image to avg fMOST Atlas Space
     #then apply transform from avg fMOST Atlas Space to CCF 
 
@@ -70,39 +124,31 @@ def ApplyTransformToSWC(SWCFile, fMOSTFile, ImgTofMOSTAtlasWarpDir, fMOSTtoCCFAt
     print(ptsw)
     ptsw.to_csv(f'{outDir}/swctest.csv', index=False)
 
-    #TList = [f'{ImgTofMOSTAtlasWarpDir}/{outname}_affineMtxTofMOST.mat', f'{ImgTofMOSTAtlasWarpDir}/{outname}_invTransformTofMOST.nii.gz']
-    #TList2 = [f'{fMOSTtoCCFWarpDir}/fMOSTtoCCFfwdTransform.nii.gz']
-    #ptsw = ants.apply_transforms_to_points(dim=3,points=pts,transformlist=TList,whichtoinvert=[True, False])
-    #ptsw2 = ants.apply_transforms_to_points(dim=3,points=ptsw,transformlist=TList2,whichtoinvert=[False])
-    #print(ptsw2)
-    #ptsw2.to_csv(f'{outDir}/swctest2.csv', index=False)
+    tarFile = '/Users/min/Documents/ResearchResults/AllenInstitute/fMost/fMOSTRegistrationModule/FullTest/RegOut/192343_green_mm_SLA_WarpedToCCF.nii.gz'
+    #tarFile = '/Users/min/Documents/ResearchResults/AllenInstitute/fMost/fMOSTRegistrationModule/FullTest/RegOut/182724_red_mm_SLA_WarpedToCCF.nii.gz'
+    imageTar = sitk.ReadImage(tarFile)
+    print(ptsw['x'])
+    print(ptsw.iloc[0]['x'])
+    print('Pixel Coordinate (CCF):' + str(imageTar.TransformPhysicalPointToContinuousIndex((ptsw.iloc[0]['x'],ptsw.iloc[0]['y'],ptsw.iloc[0]['z']))))
 
-    
+    #length = ptsw['x'].count
+    #pixelsw = ptsw.copy
+    #print(pixelsw)
+    x=x2.copy()
+    y=y2.copy()
+    z=z2.copy()
+    t=x.copy()
+    for k in range(0,len(ptsw)):
+        pixelCoord = imageTar.TransformPhysicalPointToContinuousIndex((ptsw.iloc[k]['x'],ptsw.iloc[k]['y'],ptsw.iloc[k]['z']))
+        #pixelsw.iloc[k]['x']=pixelCoord[0]
+        #pixelsw.iloc[k]['y']=pixelCoord[1]
+        #pixelsw.iloc[k]['z']=pixelCoord[2]
 
-    #TList = ['/Volumes/My Passport/fMOST/Transfer_12_15_2021/DeformNeurons/ImageChain/3_AffineAligned/mouse182724red_xy32z80GenericAffine.mat']
-    #ptsw = ants.apply_transforms_to_points(dim=3,points=pts,transformlist=TList,whichtoinvert=[True])
+        x[k]=pixelCoord[0]
+        y[k]=pixelCoord[1]
+        z[k]=pixelCoord[2]
+        t[k]=1
 
-    #TList=['/Volumes/My Passport/fMOST/Transfer_12_15_2021/DeformNeurons/ImageChain/4_RegisteredToAtlas/Atlasmouse182724red_xy32z8Warped331InverseWarp.nii.gz', '/Volumes/My Passport/fMOST/Transfer_12_15_2021/DeformNeurons/ImageChain/4_RegisteredToAtlas/Atlasmouse182724red_xy32z8Warped330GenericAffine.mat']
-    #ptsw2 = ants.apply_transforms_to_points(dim=3,points=ptsw,transformlist=TList,whichtoinvert=[False, True])
-    
-    #TList=['/Volumes/My Passport/fMOST/Transfer_12_15_2021/DeformNeurons/ImageChain/5_RegisteredToCCF/1InverseWarp.nii.gz','/Volumes/My Passport/fMOST/Transfer_12_15_2021/DeformNeurons/ImageChain/5_RegisteredToCCF/0GenericAffine.mat'] 
-    #ptsw3 = ants.apply_transforms_to_points(dim=3,points=ptsw2,transformlist=TList,whichtoinvert=[False, True])
-    #print(ptsw3)
-    #print(x)
-    #print(y)
-    #print(z)
-    #print(t)
-    #print(SWCFile[:,4]*10)
-    #print(SWCFile[:,4])
-    #outname = Path(Path(x).stem).stem
-    #print(f'{out_dir}/{outname}_WarpedToCCF.nii.gz')
-    #fixed = ants.image_read(fixed_fn)
-    #moving = ants.image_read(x)
-    #warped = ants.apply_transforms(fixed=fixed,
-    #                                 moving=moving,
-    #                                 transformlist=[f'{warp_dir}/0GenericAffine.mat', f'{warp_dir}/1Warp.nii.gz'],
-    #                                 whichtoinvert=[False, False],
-    #                                 verbose=True   
-    #                                )
-    #ants.image_write(warped, f'{out_dir}/{outname}_WarpedToCCF.nii.gz')
-
+    pixelsw = pd.DataFrame({'x': x, 'y': y, 'z': z, 't': t})
+    print(pixelsw)
+    pixelsw.to_csv(f'{outDir}/swctestpixel.csv', index=False)
