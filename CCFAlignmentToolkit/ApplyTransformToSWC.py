@@ -6,149 +6,113 @@ import os
 import pandas as pd
 import SimpleITK as sitk
 
-#t=glob("/Users/min/Dropbox (Personal)/Research/Projects/CCFAlignmentToolkit/Resources/TestData/*.swc")
-#fMOSTFile = '/Volumes/My Passport/fMOST/Transfer_12_15_2021/DeformNeurons/ImageChain/1_Downsampled/mouse182724red_xy32z8.nii.gz'
-#fixed_fn = "/Users/min/Documents/ResearchResults/AllenInstitute/fMost/ApplyAtlasTransforms/AnnotationRegistrationLabel3/CCFTemplate25um_uint16.nii.gz"
-#out_dir = "/Users/min/Documents/ResearchResults/AllenInstitute/fMost/ApplyAtlasTransforms/Warped"
-#warp_dir = "/Users/min/Documents/ResearchResults/AllenInstitute/fMost/ApplyAtlasTransforms/out5"
-
-def ApplyTransformToSWC(SWCFile, fMOSTFile, OrientImgFile, ImgTofMOSTAtlasWarpDir, fMOSTtoCCFAtlasDir, outDir, verbose=0):
+def ApplyTransformToSWC(SWCFile, fMOSTFile, OrientImgFile, ImgTofMOSTAtlasWarpDir, fMOSTtoCCFAtlasDir, outDir, verbose=False):
 
     fMOSTtoCCFWarpDir = f'{fMOSTtoCCFAtlasDir}/fMOSTtoCCFWarp'
 
-#for SWCFile in t:
-    print(SWCFile)
+    SWCBasename = Path(SWCFile).stem
+    print('Transforming SWC file:' + SWCBasename)
+    #Read in the header for SWC file, if we want to use
     f = open(SWCFile)
     header1 = f.readline()
     header2 = f.readline()
     header3 = f.readline()
 
     fullHeader = header1 + header2 + header3
-    SWCFile = np.genfromtxt(SWCFile)
-    #print(nodes.shape)
-    #downsampled (we need to add this information later)
-    x=SWCFile[:,2]/(32*(25/10));#dim2
-    y=SWCFile[:,3]/(32*(25/10));#dim1
-    z=SWCFile[:,4]/(8*(25/10));#dim3
-
-    x2=SWCFile[:,2]#dim2
-    y2=SWCFile[:,3]#dim1
-    z2=SWCFile[:,4]#dim3
-
-    imageIn = sitk.ReadImage(OrientImgFile)
-    imageIn2 = sitk.ReadImage(fMOSTFile)
-    print(OrientImgFile)
-    print(imageIn.GetDirection())
-    print(imageIn.GetSpacing())
-    print(imageIn.GetSize())
-    print(fMOSTFile)
-    print(imageIn2.GetDirection())
-    print(imageIn2.GetSpacing())
-    print(imageIn2.GetSize())
-    print('swc-x:' + str(x2[0]))
-    print('swc-y:' + str(y2[0]))
-    print('swc-z:' + str(z2[0]))
-    print('Physical Coordinates (OrientImg):' + str(imageIn.TransformContinuousIndexToPhysicalPoint((x2[0],y2[0],z2[0]))))
-    #print(imageIn2.TransformContinuousIndexToPhysicalPoint((x[0],y[0],z[0])))
-    print('Pixel Coordinate (OrientImg):' + str(imageIn.TransformPhysicalPointToContinuousIndex(imageIn.TransformContinuousIndexToPhysicalPoint((x2[0],y2[0],z2[0])))))
-    print('Pixel Coordinate (DownsampleImg):' + str(imageIn2.TransformPhysicalPointToContinuousIndex(imageIn.TransformContinuousIndexToPhysicalPoint((x2[0],y2[0],z2[0])))))
-
-    #load fMOST IMAGE
-    outname = Path(Path(fMOSTFile).stem).stem
-    #im=ants.image_read(fMOSTFile);
-    #im2=ants.image_read(OrientImgFile);
-    #print(ants.get_orientation(im));
-    #print(ants.get_orientation(im2));
-    #ImageDim = im.numpy().shape
     
-    #Force a LPI orientations (determined manually).
-    #in native FMOST Image dim1-LtoR, dim2=StoI, dim3=AtoP
-    #in swc coordinates dim1-StoI, dim2-LtoR, dim3=AtoP 
+    #Read in SWC file
+    SWCData = np.genfromtxt(SWCFile)
+    swcID=SWCData[:,0].astype(int)#swc x coord
+    swcType=SWCData[:,1].astype(int)#swc x coord
+    swcX=SWCData[:,2]#swc x coord
+    swcY=SWCData[:,3]#swc y coord
+    swcZ=SWCData[:,4]#swc z coord
+    swcRadius=SWCData[:,5]#swc x coord
+    swcParent=SWCData[:,6].astype(int)#swc x coord
 
-    #Sub 182724 flip all 3 orientations and 
-    #d1=ImageDim[0] - y - 1;# this is corect, second dimension of swc correspond to first dimension of image. 
-    #d2=ImageDim[1] - x - 1;# this is corect, first dimension of swc correspond to second dimension of image.
-    #d3=ImageDim[2] - z - 1;
-    
-    #print(d1[0])
-    #print(d2[0])
-    #print(d3[0])
-    #print(imageIn.TransformIndexToPhysicalPoint((255,501,43)))
-    
-#So now in reoriented Image dim1-RtoL, dim2=ItoS, dim3=PtoA
-    #Swap dim2 and dim2, (PtoA and ItoS directions)
-    #e1 = d1
-    #e2 = d3
-    #e3 = d2
+    #load fMOST and Orientation images
+    imOrient = sitk.ReadImage(OrientImgFile)
+    imfMOST = sitk.ReadImage(fMOSTFile)
+    fMOSTBasename = Path(Path(fMOSTFile).stem).stem
+   
+    if verbose: 
+        print(OrientImgFile)
+        print(imOrient.GetDirection())
+        print(imOrient.GetSpacing())
+        print(imOrient.GetSize())
+        print(fMOSTFile)
+        print(imfMOST.GetDirection())
+        print(imfMOST.GetSpacing())
+        print(imfMOST.GetSize())
+        print('swc-x:' + str(swcX[0]))
+        print('swc-y:' + str(swcY[0]))
+        print('swc-z:' + str(swcZ[0]))
+        print('Physical Coordinates (OrientImg):' + str(imOrient.TransformContinuousIndexToPhysicalPoint((swcX[0],swcY[0],swcZ[0]))))
+        print('Pixel Coordinate (OrientImg):' + str(imOrient.TransformPhysicalPointToContinuousIndex(imOrient.TransformContinuousIndexToPhysicalPoint((swcX[0],swcY[0],swcZ[0])))))
+        print('Pixel Coordinate (DownsampleImg):' + str(imfMOST.TransformPhysicalPointToContinuousIndex(imOrient.TransformContinuousIndexToPhysicalPoint((swcX[0],swcY[0],swcZ[0])))))
 
-
-    #now apply resolution to bring to physical space
-    #and negate X and Y to move to ITK WORLD SPACE
-    #x=-e1*.025;
-    #y=-e2*.025;
-    #z=e3*.025;
-    #t=e1;#last dimension is just one since we don't have dim4
-    #t[:] = 1;
-
-    x=x2.copy()
-    y=y2.copy()
-    z=z2.copy()
+    #make copy of the coord arrays, this will store world coordinates 
+    x=swcX.copy()
+    y=swcY.copy()
+    z=swcZ.copy()
     t=x.copy()
 
     length = len(x)
-
-    print(length)
+    #use Orientation Header image to find world coordinates for swc coordinates
     for k in range(length):
-        worldPt = imageIn.TransformContinuousIndexToPhysicalPoint((x2[k],y2[k],z2[k]))
+        worldPt = imOrient.TransformContinuousIndexToPhysicalPoint((swcX[k],swcY[k],swcZ[k]))
         x[k]=worldPt[0]
         y[k]=worldPt[1]
         z[k]=worldPt[2] 
-        t[k]=1
-        #print(worldPt) 
-        #print(x[k])
-        #print(y[k])
-        #print(z[k])
+        t[k]=1 #t is always one for 3D transforms
 
-    #create a dataframe with points
-    #d = {'x': x, 'y': y, 'z': z, 't':t}
-    #pts = pd.DataFrame(data=d,index=[1])
-    
+    #create a dataframe with points from swc
     pts = pd.DataFrame({'x': x, 'y': y, 'z': z, 't': t})
+    if verbose: 
+        print(pts)
 
-    print(pts)
-    #apply transform from image to avg fMOST Atlas Space
-    #then apply transform from avg fMOST Atlas Space to CCF 
+    #apply transforms: From input image space ->  avg fMOST Atlas Space ->CCF
+    TList = [f'{ImgTofMOSTAtlasWarpDir}/{fMOSTBasename}_affineMtxTofMOST.mat', f'{ImgTofMOSTAtlasWarpDir}/{fMOSTBasename}_invTransformTofMOST.nii.gz', f'{fMOSTtoCCFWarpDir}/fMOSTtoCCFfwdTransform.nii.gz']
+    warpedPts = ants.apply_transforms_to_points(dim=3,points=pts,transformlist=TList,whichtoinvert=[True, False, False])
+    if verbose: 
+        print(warpedPts)
 
-    TList = [f'{ImgTofMOSTAtlasWarpDir}/{outname}_affineMtxTofMOST.mat', f'{ImgTofMOSTAtlasWarpDir}/{outname}_invTransformTofMOST.nii.gz', f'{fMOSTtoCCFWarpDir}/fMOSTtoCCFfwdTransform.nii.gz']
-    ptsw = ants.apply_transforms_to_points(dim=3,points=pts,transformlist=TList,whichtoinvert=[True, False, False])
-    print(ptsw)
-    ptsw.to_csv(f'{outDir}/swctest.csv', index=False)
 
-    tarFile = '/Users/min/Documents/ResearchResults/AllenInstitute/fMost/fMOSTRegistrationModule/FullTest/RegOut/192343_green_mm_SLA_WarpedToCCF.nii.gz'
-    #tarFile = '/Users/min/Documents/ResearchResults/AllenInstitute/fMost/fMOSTRegistrationModule/FullTest/RegOut/182724_red_mm_SLA_WarpedToCCF.nii.gz'
-    imageTar = sitk.ReadImage(tarFile)
-    print(ptsw['x'])
-    print(ptsw.iloc[0]['x'])
-    print('Pixel Coordinate (CCF):' + str(imageTar.TransformPhysicalPointToContinuousIndex((ptsw.iloc[0]['x'],ptsw.iloc[0]['y'],ptsw.iloc[0]['z']))))
+    #Save in world(mm) Coordinate
+    outputDF = warpedPts.copy(deep=True)
+    outputDF.drop(columns='t',axis=1,inplace=True)
+    outputDF.insert(0,'ID', swcID)
+    outputDF['ID'] = outputDF['ID'].astype(int)
+    outputDF.insert(1,'Type', swcType)
+    outputDF['Type'] = outputDF['Type'].astype(int)
+    outputDF.insert(5,'Radius', swcRadius)
+    outputDF.insert(6,'Parent', swcParent)
+    outputDF['Parent'] = outputDF['Parent'].astype(int)
+    if verbose:
+        print(outputDF)
+    #save outfile
+    outputDF.to_csv(f'{outDir}/{SWCBasename}_WarpToCCFmm.swc',sep=' ',header=False, index=False)
 
-    #length = ptsw['x'].count
-    #pixelsw = ptsw.copy
-    #print(pixelsw)
-    x=x2.copy()
-    y=y2.copy()
-    z=z2.copy()
-    t=x.copy()
-    for k in range(0,len(ptsw)):
-        pixelCoord = imageTar.TransformPhysicalPointToContinuousIndex((ptsw.iloc[k]['x'],ptsw.iloc[k]['y'],ptsw.iloc[k]['z']))
-        #pixelsw.iloc[k]['x']=pixelCoord[0]
-        #pixelsw.iloc[k]['y']=pixelCoord[1]
-        #pixelsw.iloc[k]['z']=pixelCoord[2]
+    #load CCF so we can output in pixel coordinates
+    CCF_template_fn = f'{fMOSTtoCCFAtlasDir}/CCFTemplate25um_uint16.nii.gz'
+    imCCF = sitk.ReadImage(CCF_template_fn)
+   
+    if verbose: 
+        print('Pixel Coordinate (CCF):' + str(imCCF.TransformPhysicalPointToContinuousIndex((warpedPts.iloc[0]['x'],warpedPts.iloc[0]['y'],warpedPts.iloc[0]['z']))))
+    xPix=swcX.copy()
+    yPix=swcY.copy()
+    zPix=swcZ.copy()
+    for k in range(0,len(warpedPts)):
+        pixelCoord = imCCF.TransformPhysicalPointToContinuousIndex((warpedPts.iloc[k]['x'],warpedPts.iloc[k]['y'],warpedPts.iloc[k]['z']))
 
-        x[k]=pixelCoord[0]
-        y[k]=pixelCoord[1]
-        z[k]=pixelCoord[2]
-        t[k]=1
+        xPix[k]=pixelCoord[0]
+        yPix[k]=pixelCoord[1]
+        zPix[k]=pixelCoord[2]
 
-    pixelsw = pd.DataFrame({'x': x, 'y': y, 'z': z, 't': t})
-    print(pixelsw)
-    pixelsw.to_csv(f'{outDir}/swctestpixel.csv', index=False)
+    outputDF.x = xPix 
+    outputDF.y = yPix 
+    outputDF.z = zPix 
+    if verbose:
+        print(outputDF)
+    #save out file
+    outputDF.to_csv(f'{outDir}/{SWCBasename}_WarpToCCFpixel.swc',sep=' ',header=False, index=False)
