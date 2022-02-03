@@ -7,6 +7,10 @@
 #  $ cd ANTsPy
 #  $ python3 setup.py install
 #
+#Alternatively you can try a pre-comipled binary available for MacOS/Linux:
+#
+#   #pip install antspyx
+#
 
 import ants
 from glob import glob
