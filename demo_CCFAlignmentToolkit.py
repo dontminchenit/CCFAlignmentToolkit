@@ -28,10 +28,6 @@ OutputBaseDir="/Users/min/Documents/ResearchResults/AllenInstitute/fMost/fMOSTRe
 RegOutDir = f'{OutputBaseDir}/RegOut'
 TransformOutDir = f'{OutputBaseDir}/TransformOut'
 
-#SWCFile = '/Users/min/Documents/ResearchResults/AllenInstitute/fMost/fMOSTRegistrationModule/FullTest/swc/192343_5384-X4338-Y12696.swc'
-#SWCFile = '/Users/min/Documents/ResearchResults/AllenInstitute/fMost/fMOSTRegistrationModule/FullTest/swc/182724_3887-X5901-Y10339.swc'
-SWCFile = '/Users/min/Documents/ResearchResults/AllenInstitute/fMost/fMOSTRegistrationModule/FullTest/swc/182724_1994-X7390-Y11953.swc'
-
 #make output directories
 os.makedirs(RegOutDir, exist_ok=True)
 os.makedirs(TransformOutDir, exist_ok=True)
