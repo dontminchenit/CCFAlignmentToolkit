@@ -6,7 +6,7 @@ import os
 import pandas as pd
 import SimpleITK as sitk
 
-def ApplyTransformToSWC(SWCFile, fMOSTFile, OrientImgFile, ImgTofMOSTAtlasWarpDir, fMOSTtoCCFAtlasDir, outDir, verbose=False):
+def ApplyTransformToSWC(SWCFile, fMOSTFile, OrientImgFile, ImgTofMOSTAtlasWarpDir, fMOSTtoCCFAtlasDir, outDir, verbose=False, targetCCF0fMOST1=0):
 
     fMOSTtoCCFWarpDir = f'{fMOSTtoCCFAtlasDir}/fMOSTtoCCFWarp'
 
@@ -72,8 +72,14 @@ def ApplyTransformToSWC(SWCFile, fMOSTFile, OrientImgFile, ImgTofMOSTAtlasWarpDi
         print(pts)
 
     #apply transforms: From input image space ->  avg fMOST Atlas Space ->CCF
-    TList = [f'{ImgTofMOSTAtlasWarpDir}/{fMOSTBasename}_affineMtxTofMOST.mat', f'{ImgTofMOSTAtlasWarpDir}/{fMOSTBasename}_invTransformTofMOST.nii.gz', f'{fMOSTtoCCFWarpDir}/fMOSTtoCCFfwdTransform.nii.gz']
-    warpedPts = ants.apply_transforms_to_points(dim=3,points=pts,transformlist=TList,whichtoinvert=[True, False, False])
+    if targetCCF0fMOST1 == 0:
+        TList = [f'{ImgTofMOSTAtlasWarpDir}/{fMOSTBasename}_affineMtxTofMOST.mat', f'{ImgTofMOSTAtlasWarpDir}/{fMOSTBasename}_invTransformTofMOST.nii.gz', f'{fMOSTtoCCFWarpDir}/fMOSTtoCCFinvTransform.nii.gz']
+        warpedPts = ants.apply_transforms_to_points(dim=3,points=pts,transformlist=TList,whichtoinvert=[True, False, False])
+    elif targetCCF0fMOST1 == 1:
+        #Use below if only transforming to fMOST Space
+        TListfMOSTOnly = [f'{ImgTofMOSTAtlasWarpDir}/{fMOSTBasename}_affineMtxTofMOST.mat', f'{ImgTofMOSTAtlasWarpDir}/{fMOSTBasename}_invTransformTofMOST.nii.gz']
+        warpedPts = ants.apply_transforms_to_points(dim=3,points=pts,transformlist=TListfMOSTOnly,whichtoinvert=[True, False])
+    
     if verbose: 
         print(warpedPts)
 
@@ -90,20 +96,27 @@ def ApplyTransformToSWC(SWCFile, fMOSTFile, OrientImgFile, ImgTofMOSTAtlasWarpDi
     outputDF['Parent'] = outputDF['Parent'].astype(int)
     if verbose:
         print(outputDF)
-    #save outfile
-    outputDF.to_csv(f'{outDir}/{SWCBasename}_WarpToCCFmm.swc',sep=' ',header=False, index=False)
 
     #load CCF so we can output in pixel coordinates
-    CCF_template_fn = f'{fMOSTtoCCFAtlasDir}/CCFTemplate25um_uint16.nii.gz'
-    imCCF = sitk.ReadImage(CCF_template_fn)
+    if targetCCF0fMOST1 == 0:
+        Tar_template_fn = f'{fMOSTtoCCFAtlasDir}/CCFTemplate25um_uint16.nii.gz'
+        templateName = 'CCF'
+    elif targetCCF0fMOST1 == 1:
+    #Use below if only transforming to fMOST space
+        Tar_template_fn = f'{fMOSTtoCCFAtlasDir}/AvgfMOSTAtlas25um_v3_uint16.nii.gz'
+        templateName = 'AvgfMOST'
+    imTemplate = sitk.ReadImage(Tar_template_fn)
    
+    #save in mm space
+    outputDF.to_csv(f'{outDir}/{SWCBasename}_WarpTo{templateName}mm.swc',sep=' ',header=False, index=False)
+    
     if verbose: 
-        print('Pixel Coordinate (CCF):' + str(imCCF.TransformPhysicalPointToContinuousIndex((warpedPts.iloc[0]['x'],warpedPts.iloc[0]['y'],warpedPts.iloc[0]['z']))))
+        print('Pixel Coordinate (Template):' + str(imTemplate.TransformPhysicalPointToContinuousIndex((warpedPts.iloc[0]['x'],warpedPts.iloc[0]['y'],warpedPts.iloc[0]['z']))))
     xPix=swcX.copy()
     yPix=swcY.copy()
     zPix=swcZ.copy()
     for k in range(0,len(warpedPts)):
-        pixelCoord = imCCF.TransformPhysicalPointToContinuousIndex((warpedPts.iloc[k]['x'],warpedPts.iloc[k]['y'],warpedPts.iloc[k]['z']))
+        pixelCoord = imTemplate.TransformPhysicalPointToContinuousIndex((warpedPts.iloc[k]['x'],warpedPts.iloc[k]['y'],warpedPts.iloc[k]['z']))
 
         xPix[k]=pixelCoord[0]
         yPix[k]=pixelCoord[1]
@@ -114,5 +127,5 @@ def ApplyTransformToSWC(SWCFile, fMOSTFile, OrientImgFile, ImgTofMOSTAtlasWarpDi
     outputDF.z = zPix 
     if verbose:
         print(outputDF)
-    #save out file
-    outputDF.to_csv(f'{outDir}/{SWCBasename}_WarpToCCFpixel.swc',sep=' ',header=False, index=False)
+    #save in pixel space
+    outputDF.to_csv(f'{outDir}/{SWCBasename}_WarpTo{templateName}pixel.swc',sep=' ',header=False, index=False)
