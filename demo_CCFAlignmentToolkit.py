@@ -17,6 +17,7 @@ from glob import glob
 from pathlib import Path
 import os
 from CCFAlignmentToolkit.RegisterfMOSTtoCCF import RegisterfMOSTtoCCF
+from CCFAlignmentToolkit.PreProcessfMOST import PreProcessfMOST
 from CCFAlignmentToolkit.ApplyTransformTofMOST import  ApplyTransformTofMOST
 from CCFAlignmentToolkit.ApplyTransformToSWC import ApplyTransformToSWC
 
@@ -25,10 +26,13 @@ InputBaseDir="/Users/min/Documents/ResearchResults/AllenInstitute/fMost/fMOSTReg
 InputImgDir=f'{InputBaseDir}/202112201148_downsampled_volumes'
 OrientDir=f'{InputBaseDir}/202112201620_orientation_templates'
 SWCDir=f'{InputBaseDir}/HUST_REGISTRATION_AllCells_OriginalSent'
-fMOSTtoCCFAtlasDir = "/Users/min/Documents/ResearchResults/AllenInstitute/fMost/fMOSTRegistrationModule/AtlasV5"
+fMOSTtoCCFAtlasDir = "/Users/min/Documents/ResearchResults/AllenInstitute/fMost/fMOSTRegistrationModule/AtlasV6"
+
+InputImgDir='/Users/min/Documents/ResearchResults/AllenInstitute/fMost/fMOSTRegistrationModule/FullTest/Test'
+#SWCDir='/Users/min/Documents/ResearchResults/AllenInstitute/fMost/fMOSTRegistrationModule/FullTest/Test'
 
 #Output Save Directories
-OutputBaseDir="/Users/min/Documents/ResearchResults/AllenInstitute/fMost/fMOSTRegistrationModule/FullTest/Output_2_1_2022"
+OutputBaseDir="/Users/min/Documents/ResearchResults/AllenInstitute/fMost/fMOSTRegistrationModule/FullTest/Output_4_7_2022"
 RegOutDir = f'{OutputBaseDir}/RegOut'
 TransformOutDir = f'{OutputBaseDir}/TransformOut'
 
@@ -51,19 +55,20 @@ for fMOSTFile in inputFiles:
     print(OrientImgFiles[0])
    
     #Register Images 
-    RegisterfMOSTtoCCF(fMOSTFile,fMOSTtoCCFAtlasDir,RegOutDir)
+    fMOSTFile_Preprocessed=PreProcessfMOST(fMOSTFile,RegOutDir)
+    #RegisterfMOSTtoCCF(fMOSTFile,fMOSTtoCCFAtlasDir,RegOutDir)
     
     #Use this to apply tranforms to an image
     #ApplyTransformTofMOST(fMOSTFile, RegOutDir, fMOSTtoCCFAtlasDir, TransformOutDir) 
     
     #Search for SWC files
-    SWCAllFiles = glob(f'{SWCDir}/{imgID}*.swc')
-    print(SWCAllFiles)
+    #SWCAllFiles = glob(f'{SWCDir}/{imgID}*.swc')
+    #print(SWCAllFiles)
     
     #Apply Transforms to the SWC files
-    for SWCFile in SWCAllFiles:
+    #for SWCFile in SWCAllFiles:
     #SWCFile=SWCAllFiles[0]
-        ApplyTransformToSWC(SWCFile, fMOSTFile,OrientImgFiles[0], RegOutDir, fMOSTtoCCFAtlasDir, TransformOutDir)
+    #    ApplyTransformToSWC(SWCFile, fMOSTFile,OrientImgFiles[0], RegOutDir, fMOSTtoCCFAtlasDir, TransformOutDir)
 
 
 
