@@ -1,0 +1,11 @@
+inputImage:
+        class: File
+        path: /bil/data/hackathon/2022_GYBS/input/fMOST/subject/191812_red_mm_SLA.nii.gz
+
+atlasDir:
+        class: Directory
+        path: /bil/users/minchen1/Projects/AtlasV6
+
+neuronSWCDir:
+        class: Directory
+        path: /bil/users/minchen1/Projects/Placeholder

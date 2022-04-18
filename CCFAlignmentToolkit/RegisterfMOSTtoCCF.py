@@ -14,7 +14,7 @@ from pathlib import Path
 import shutil
 import os
 
-def RegisterfMOSTtoCCF(fMOSTFile,fMOSTtoCCFAtlasDir,outDir):
+def RegisterfMOSTtoCCF(fMOSTFile,fMOSTtoCCFAtlasDir,outDir,quickANTS=1):
     print(fMOSTFile)
 
     fMOST_template_fn = f'{fMOSTtoCCFAtlasDir}/AvgfMOSTAtlas25um_v3_uint16.nii.gz'
@@ -25,13 +25,18 @@ def RegisterfMOSTtoCCF(fMOSTFile,fMOSTtoCCFAtlasDir,outDir):
     fMOST_template = ants.image_read(fMOST_template_fn)
     
     #first register to fMOST
-    registration = ants.registration(fixed=fMOST_template,
+    if quickANTS == 1:
+        registration = ants.registration(fixed=fMOST_template,
                                      moving=movingImg,
                                      type_of_transform='antsRegistrationSyNQuick[s]',
                                      verbose=True
                                      )
-
-                                     #type_of_transform='antsRegistrationSyN[s]',
+    else:
+        registration = ants.registration(fixed=fMOST_template,
+                                     moving=movingImg,
+                                     type_of_transform='antsRegistrationSyN[s]',
+                                     verbose=True
+                                     )
     outname = Path(Path(fMOSTFile).stem).stem
     #move warped image
     ants.image_write(registration['warpedmovout'], f'{outDir}/{outname}_WarpedTofMOST.nii.gz')

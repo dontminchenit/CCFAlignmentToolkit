@@ -25,15 +25,10 @@ oDir = os.getenv("OUTPUT_DIR")
 
 fMOSTFile = os.path.join(iDir, sys.argv[1])
 fMOSTtoCCFAtlasDir = os.path.join(iDir, sys.argv[2])
-#RegOutDir = os.path.join(oDir, sys.argv[3])
-
-#make output directories
-#os.makedirs(RegOutDir, exist_ok=True)
-
 
 print(fMOSTFile)
 #Register Images 
-RegisterfMOSTtoCCF(fMOSTFile,fMOSTtoCCFAtlasDir,oDir)
+RegisterfMOSTtoCCF(fMOSTFile,fMOSTtoCCFAtlasDir,oDir,sys.argv[3])
     
     
 
