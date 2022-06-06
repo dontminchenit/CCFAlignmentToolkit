@@ -32,7 +32,7 @@ InputImgDir='/Users/min/Documents/ResearchResults/AllenInstitute/fMost/fMOSTRegi
 #SWCDir='/Users/min/Documents/ResearchResults/AllenInstitute/fMost/fMOSTRegistrationModule/FullTest/Test'
 
 #Output Save Directories
-OutputBaseDir="/Users/min/Documents/ResearchResults/AllenInstitute/fMost/fMOSTRegistrationModule/FullTest/Output_4_7_2022"
+OutputBaseDir="/Users/min/Documents/ResearchResults/AllenInstitute/fMost/fMOSTRegistrationModule/FullTest/OutputFull_5_25_2022"
 RegOutDir = f'{OutputBaseDir}/RegOut'
 TransformOutDir = f'{OutputBaseDir}/TransformOut'
 
@@ -56,7 +56,7 @@ for fMOSTFile in inputFiles:
    
     #Register Images 
     fMOSTFile_Preprocessed=PreProcessfMOST(fMOSTFile,RegOutDir)
-    #RegisterfMOSTtoCCF(fMOSTFile,fMOSTtoCCFAtlasDir,RegOutDir)
+    #RegisterfMOSTtoCCF(fMOSTFile,fMOSTtoCCFAtlasDir,RegOutDir,0)
     
     #Use this to apply tranforms to an image
     #ApplyTransformTofMOST(fMOSTFile, RegOutDir, fMOSTtoCCFAtlasDir, TransformOutDir) 

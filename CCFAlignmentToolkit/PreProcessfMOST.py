@@ -96,6 +96,8 @@ def removeStripeNoise(im,lrDirNP,apDirNP):
     
     print(nSize)
     for i in range(nSize[apDirNP]):
+        #if (i<400):
+        #    continue
         #get coronal slice
         if apDirNP == 0:
             slc = np.squeeze(im[i,:,:])
@@ -152,13 +154,18 @@ def removeStripeNoise(im,lrDirNP,apDirNP):
 
         #if (i==400):
             #plt.imshow(slc)
+            #print(signal[peaks])
+            #print(np.argmax(signal[peaks]))
             #plt.plot(peaks,signal[peaks], "xr"); plt.plot(signal);
             #plt.show()
-    
-        #print(peaks)
+
           #  [pks,locs]=findpeaks(abs(Y(y_center,:)),'MinPeakDistance',N/(20*SizeFactor),'SortStr','descend');
+        maxPeak = np.argmax(signal[peaks])
         for x in peaks:
             #x=locs(j);
+            if x == peaks[maxPeak]: #skip max peak
+                 continue
+
             if(int(x-w2)>=0 and int(x+w2+1)<N):
                  #print(int(y_center-w))
                  #print(int(y_center+w))
