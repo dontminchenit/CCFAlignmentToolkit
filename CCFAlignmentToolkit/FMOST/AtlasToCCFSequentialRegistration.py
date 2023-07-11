@@ -74,7 +74,7 @@ if True:
                                      type_of_transform=transType,
                                      grad_step=0.1,
                                      flow_sigma=3,
-                                     total_sigm=0,
+                                     total_sigma=0,
                                      reg_iterations=iters,
                                      aff_metric='meansquares',
                                      syn_metric='meansquares',
