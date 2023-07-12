@@ -10,6 +10,9 @@
 
 import ants
 #from glob import glob
+from scipy import ndimage
+from skimage import morphology
+from skimage import measure
 from pathlib import Path
 import shutil
 import os
@@ -25,7 +28,7 @@ def main():
     CCFInDir='/Users/min/Documents/ResearchResults/AllenInstitute/merFish/Data/Mouse3_v2_regapped/CCFOrigMatched'
 
     #output directory 
-    outDirBase=f'/Users/min/Documents/ResearchResults/AllenInstitute/merFish/RegIterN_10iters_repro2_{outname}/'
+    outDirBase=f'/Users/min/Documents/ResearchResults/AllenInstitute/merFish/RegIterN_DistTestFull_{outname}/'
     os.makedirs(outDirBase,exist_ok=True)
 
     #Input Images
@@ -63,8 +66,9 @@ def main():
     print(Nslc)
 
     #Control vectors - These control what labels are used at each iteration.
-    LabelsLevel = [0, 0, 1, 1, 1, 1, 1, 1, 1, 1] #0 is broad labels, 1 is landmark labels   
-    LabelsReplTo = [1, -1, 1, 1, 1, 1, 1, 1, 1, 1]#set to 1 if merging labels, set to -1 if using all labels in range as distinct labels
+    LabelsLevel = [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1] #0 is broad labels, 1 is landmark labels   
+    LabelsReplTo = [1, -1, 1, 1, 1, 1, 1, 1, 1, 1, 1]#set to 1 if merging labels, set to -1 if using all labels in range as distinct labels
+    UseDistTrans = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
 
     #list of labels to use at each iteration
     iterLabels0 = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17])
@@ -77,6 +81,7 @@ def main():
     iterLabels7 = np.array([79])
     iterLabels8 = np.array([123, 54, 64, 121, 120, 78, 94])
     iterLabels9 = np.array([124])
+    iterLabels10 = np.array([61, 115, 116, 117])
     
     iterLabelsAll = [iterLabels0,
                      iterLabels1,
@@ -87,12 +92,13 @@ def main():
                      iterLabels6,
                      iterLabels7,
                      iterLabels8,
-                     iterLabels9]
+                     iterLabels9,
+                     iterLabels10]
     numIter = len(iterLabelsAll)
 
     #start registrations
     for iter in range(numIter):
-        
+
         print(iterLabelsAll[iter])    
         #output directory for current iteration
         outDirIter = f'{outDirBase}/iter{iter}'
@@ -119,6 +125,10 @@ def main():
         if (iter == 0):
             mFishLabelsIm_sel.view()[:,:,:]=mFishLabelsIm_sel.view()*250+mFishLabelsIm_sel.view()*mFishRHemi_Im.view(); 
         
+        #if using distance transform instead of label
+        if (UseDistTrans[iter]==1):
+            mFishLabelsIm_sel.view()[:,:,:]=distTranClean(mFishLabelsIm_sel.view(),2000,50)
+
         #save merfish input after label selection
         ants.image_write(mFishLabelsIm_sel, f'{outDirIter}/{outname}_selLabels_mFish.nii.gz')
       
@@ -134,7 +144,12 @@ def main():
         #For the first iteration we divide into hemisphere 
         if (iter == 0):
             CCFLabelsIm_sel.view()[:,:,:]=CCFLabelsIm_sel.view()*250+CCFLabelsIm_sel.view()*CCFRHemi_Im.view()*500; 
-        
+
+        #if using distance transform instead of label
+        if (UseDistTrans[iter]==1):
+            CCFLabelsIm_sel.view()[:,:,:]=distTranClean(CCFLabelsIm_sel.view(),2000,50)
+
+
         #save CCF Input after label selection
         ants.image_write(CCFLabelsIm_sel, f'{outDirIter}/{outname}_selLabels_CCF.nii.gz')
 
@@ -218,7 +233,7 @@ def main():
                                              verbose=True   
                                             )
 
-            #leave things along if either CCF or merfish slice is empty
+            #leave things alone if either CCF or merfish slice is empty
             if (slcsum != 0) & (slcsum2 != 0):
                 outReg.view()[:,:,i]=warpedslc.view()
 
@@ -238,6 +253,46 @@ def main():
         mFishLabelsLM_unDi_Im = applySlcTransforms(mFishLabelsLM_unDi_Im,CCFLabelsB_Im,0,numTrans,outDirIter,outname,'Mouse3Labels_Landmarks_unDilated')
         mFishStack_Im = applySlcTransforms(mFishStack_Im,CCFLabelsB_Im,1,numTrans,outDirIter,outname,'Mouse3Stack')
         mFishRHemi_Im = applySlcTransforms(mFishRHemi_Im,CCFLabelsB_Im,1,numTrans,outDirIter,outname,'Mouse3RHemi')
+
+
+#subfunction for creating a clean distance transform of a binary images
+def distTranClean(imIn, minCompSize, minNoiseSize):
+
+    imOut = imIn
+    Nslc = imIn.shape[2]
+
+    #Operate per slice
+    for i in range(Nslc):
+        print(i)
+        #extract slice
+        currslc=imOut[:,:,i]
+
+        #close image to make large connected components
+        currslc_mask=ndimage.binary_closing(currslc,structure=np.ones((60,60)))
+
+        #filter by largest CompSize size
+        currslc_mask=morphology.remove_small_objects(measure.label(currslc_mask),minCompSize,connectivity=2)
+
+        #mask with original image
+        currslc = (currslc > 0) & (currslc_mask > 0)
+
+        #filter by noise size
+        currslc=morphology.remove_small_objects(measure.label(currslc),minNoiseSize,connectivity=2)
+        slcsum=np.sum(currslc)
+
+        #if slice is not empty find distance transform, otherwise just save empty img
+        if(slcsum > 0):
+            #calculate distance transform
+            currslc=ndimage.distance_transform_edt(np.invert(currslc > 0))
+
+            #invert and clip        
+            currslc=(75-currslc)
+            currslc[currslc<0]=0
+
+        # save slice
+        imOut[:,:,i]=currslc
+    return imOut
+
 
 #subfunction for transforming an image per section
 def applySlcTransforms(movingImg,fixedImg,NN0Lin1,numTrans,workingDir,outname,saveName):
