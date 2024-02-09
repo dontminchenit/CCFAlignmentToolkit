@@ -1,9 +1,11 @@
 # CCFAlignmentToolkit
+fMOST scripts:
+
 One-time Functions (these are functions that only need to be run once. We will run these and will provide the end results as resources) 
 1) Construction of fMOST atlas 
-Function: antsMultivariateTemplateConstruction2.sh
-Inputs: Collection of fMOST images to be used in atlas.
-Outputs: fMOST average atlas
+  Function: antsMultivariateTemplateConstruction2.sh
+  Inputs: Collection of fMOST images to be used in atlas.
+  Outputs: fMOST average atlas
 
 2) Sequential Registration of fMOST atlas to CCF
 Function: AtlasToCCFSequentialRegistration.py
@@ -25,3 +27,5 @@ Outputs: new fMOST image in CCF space
 Function: ApplyTransfromToSWC.py
 Inputs: SWC in new fMOST image space; transform between fMOST image->fMOST atlas; transform between fMOST atlas->CCF
 Outputs:  neurons (swc) in CCF space
+
+MERFISH:
