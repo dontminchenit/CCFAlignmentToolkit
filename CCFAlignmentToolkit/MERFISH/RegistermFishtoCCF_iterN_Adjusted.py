@@ -25,10 +25,10 @@ def main():
     
     #Input Directories
     mFishInDir='/Users/min/Documents/ResearchResults/AllenInstitute/merFish/Data/Mouse3_v2_regapped/Mouse3'
-    CCFInDir='/Users/min/Documents/ResearchResults/AllenInstitute/merFish/Data/Mouse3_v2_regapped/CCFOrigMatched'
+    CCFInDir='/Users/min/Documents/ResearchResults/AllenInstitute/merFish/Data/Mouse3_v2_regapped/CCFOrigMatched_Adjusted'
 
     #output directory 
-    outDirBase=f'/Users/min/Documents/ResearchResults/AllenInstitute/merFish/RegIterN_HipFirstCap15_{outname}/'
+    outDirBase=f'/Users/min/Documents/ResearchResults/AllenInstitute/merFish/RegIterN_HipFirstCap15_{outname}_adjusted/'
     os.makedirs(outDirBase,exist_ok=True)
 
     #Input Images
