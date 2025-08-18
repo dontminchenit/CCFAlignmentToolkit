@@ -1,8 +1,19 @@
 # CCFAlignmentToolkit
 
-This repository contains scripts usable with the ANTS Ecosystem () for registering MERFISH and fMOST images into the Allen Common Coordinate Frame (v3).
+This repository contains scripts compatible with the [ANTsX Ecosystem](https://github.com/ANTsX) for registering MERFISH and fMOST images into the Allen Common Coordinate Framework (v3). The pipelines below were developed in support of work done as part of the following publications and conferences:
+
+- Yao, Z., Van Velthoven, C.T., Kunst, M., Zhang, M., McMillen, D., Lee, C., Jung, W., Goldy, J., Abdelhak, A., Aitken, M., Baker, K., et al. 2023. A high-resolution transcriptomic and spatial atlas of cell types in the whole mouse brain. Nature, 624(7991), pp.317-332. [https://doi.org/10.1038/s41586-023-06812-z](https://doi.org/10.1038/s41586-023-06812-z)
+- Tustison, N.J., Chen, M., Kronman, F.N., Duda, J.T., Gamlin, C., Tustison, M.G., Kunst, M., Dalley, R., Sorenson, S., Wang, Q. Ng, L., et al. 2025. Modular strategies for spatial mapping of diverse cell type data of the mouse brain. Under Review.
+- [Get Your Brain Straight - Hackathon 1: March 2022](HCK01_2022_Virtual/README.md)
+
+
 
 # fMOST scripts
+
+<p align="middle">
+  <img src="https://github.com/ntustison/DevCCF-Velocity-Flow/blob/main/Manuscript/Figures/fmostPipeline.png" width="500" />
+</p>
+##Description
 
 ## One-time Functions 
 (these are functions that only need to be run once. We will run these and will provide the end results as resources) 
@@ -35,6 +46,12 @@ This repository contains scripts usable with the ANTS Ecosystem () for registeri
 - Outputs:  neurons (swc) in CCF space
 
 # MERFISH scripts
+
+<p align="middle">
+  <img src="https://github.com/ntustison/DevCCF-Velocity-Flow/blob/main/Manuscript/Figures/merfishPipeline.png" width="500" />
+</p>
+
+##Description
 
 1.) Run: 
 
