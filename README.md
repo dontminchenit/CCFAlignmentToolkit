@@ -40,19 +40,40 @@ These are functions the users will run given new fMOST images or neuron reconstr
 ### Registration of new fMOST image to fMOST atlas
 - Function: **RegisterfMOSTtoCCF.py**
 - Inputs: New fMOST image (downsampled) and fMOST average atlas
-  -
-- Output: Transform between new fMOST image and fMOST atlas
+  - fMOSTFile - fMOST file to be registered
+  - fMOSTtoCCFAtlasDir - Directory containing the atlas to atlas registration results (see above)
+  - outDir - Output directory
+  - quickANTS - flag to use a quick run of ANTS (default = 1)
+- Output: Transform between new fMOST image and fMOST atlas and the CCF. Outputs are saved to the folder {outDir} specified at input. With the prefix {outName} derived from the input fMOST image name.
+  - _{outDir}/{outname}_fwdTransformTofMOST.nii.gz_ - foward deformation field to fMOST atlas
+  - _{outDir}/{outname}_affineMtxTofMOST.mat_ - affine matrix to fMOST atlas
+  - _{outDir}/{outname}_invTransformTofMOST.nii.gz_ - inverse deformation field to fMOST atlas
+  - _{outDir}/{outname}_WarpedToCCF.nii.gz_ - Warped fMOST image in Allen CCF
 
-### Applying transforms to image
+### Applying transforms from registration to images 
 - Function: **ApplyTransfromTofMOST.py**
-- Inputs: fMOST image; transform between fMOST image->fMOST atlas; transform between fMOST atlas and Allen CCF
-- Outputs: new fMOST image in CCF space
+- Inputs:
+  - fMOSTFile - new fMOST image to apply transformations
+  - ImgTofMOSTAtlasWarpDir - Directory containing the image to atlas registration results (see above)
+  - fMOSTtoCCFAtlasDir - Directory containing the atlas to atlas registration results (see above)
+  - outDir - Output directory
+- Outputs: Outputs are saved to the folder {outDir} specified at input. With the prefix {outName} derived from the input fMOST image name.
+  - _{outDir}/{outname}_WarpedToCCF.nii.gz_ - Image transformed to Allen CCF
+  - _{outDir}/{outname}_WarpedTofMOST.nii.gz_ - Image transformed to the fMOST Atlas
 
-### Applying transforms to neurons
+### Applying transforms to neuron reconstructions in the same space
 - Function: **ApplyTransfromToSWC.py**
 - Inputs: SWC in new fMOST image space; transform between fMOST image->fMOST atlas; transform between fMOST atlas->CCF
-- Outputs:  neurons (swc) in CCF space
-
+  - SWCFile - Neuron reconstruction file (.swc)
+  - fMOSTFile - new fMOST image to apply transformations
+  - OrientImgFile - Orientation file
+  - ImgTofMOSTAtlasWarpDir - Directory containing the image to atlas registration results (see above)
+  - fMOSTtoCCFAtlasDir - Directory containing the atlas to atlas registration results (see above)
+  - outDir - Output directory
+  - verbose(default=False) - write out additional information
+  - targetCCF0fMOST1(default = -) - move neuron reconstruction to Allen CCF (=0) or fMOST atlas (=1)
+- Outputs:  Neuron reconstructions (.swc) in CCF space. Outputs are saved to the folder {outDir} specified at input. With the prefix {SWCBasename} derived from the input swc filename.
+  -  _{outDir}/{SWCBasename}_WarpToCCFpixel.swc_
 # MERFISH scripts
 
 <p align="middle">
