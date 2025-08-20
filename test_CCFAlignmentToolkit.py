@@ -7,6 +7,7 @@
 #  $ cd ANTsPy
 #  $ python3 setup.py install
 #
+# Test script for running fMOST TO CCF registration
 
 import ants
 from glob import glob
