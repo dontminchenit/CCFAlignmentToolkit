@@ -1,3 +1,21 @@
+# Function: ApplyTransfromToSWC.py
+# Description: Function for applying transforms from previous registrations to fMOST single neuron reconstructions (.swc) 
+#    Inputs: SWC in new fMOST image space; transform between fMOST image->fMOST atlas; transform between fMOST atlas->CCF
+#        SWCFile - Neuron reconstruction file (.swc)
+#        fMOSTFile - new fMOST image to apply transformations
+#        OrientImgFile - Orientation file
+#        ImgTofMOSTAtlasWarpDir - Directory containing the image to atlas registration results (see above)
+#        fMOSTtoCCFAtlasDir - Directory containing the atlas to atlas registration results (see above)
+#        outDir - Output directory
+#        verbose(default=False) - write out additional information
+#        targetCCF0fMOST1(default = -) - move neuron reconstruction to Allen CCF (=0) or fMOST atlas (=1)
+#    Outputs: Neuron reconstructions (.swc) in CCF space. Outputs are saved to the folder {outDir} specified at input. With the prefix {SWCBasename} derived from the input swc filename.
+#        _{outDir}/{SWCBasename}WarpToCCFpixel.swc
+
+
+
+
+
 import ants
 from glob import glob
 from pathlib import Path

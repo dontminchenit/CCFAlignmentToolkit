@@ -7,6 +7,20 @@
 #  $ cd ANTsPy
 #  $ python3 setup.py install
 #
+# Step 2: Apply this transform in reverse to the Allen CCF to match slices of the CCF to the space of each MERFISH section
+#
+#    Script: ApplyGlobalCCFTransform_adjusted.py
+#    Inputs:
+#        outname - name prefix attached to results
+#        mFishLabels - Broad labels for tissue types in the MERFISH image
+#        CCFLabels - Broad labels for tissue types in the Allen CCF
+#        CCFLandmarks - Fine labels for key structures in the MERFISH image
+#        CCFFullLabels - Fine labels for key structures in the Allen CCF
+#        CCFAtlas - Allen CCF atlas image
+#        outDir - Base directory where results will be saved
+#        inputDir - output directory from Step 1
+#    Outputs:
+#        Folder with all the input images are globally transformed with this adjusted matrix.
 
 import ants
 from glob import glob

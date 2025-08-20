@@ -7,6 +7,18 @@
 #  $ cd ANTsPy
 #  $ python3 setup.py install
 #
+# Step 1: Global registration of MERFISH brain into the CCF to match the correct global orientation of the brains.
+#    Script: RegistermFishtoCCFGlobal.py
+#    Inputs:
+#        outname - name prefix attached to results
+#        mFishLabels - Broad labels for tissue types in the MERFISH image
+#        CCFLabels - Broad labels for tissue types in the Allen CCF
+#        CCFLandmarks - Fine labels for key structures in the MERFISH image
+#        CCFFullLabels - Fine labels for key structures in the Allen CCF
+#        CCFAtlas - Allen CCF atlas image
+#        outDirBase - Base directory where results will be saved
+#    Outputs:
+#        Generate the initial global transform. A file ending with "*_CCFGlobAffineMtx.mat" in the outDirBase
 
 import ants
 #from glob import glob

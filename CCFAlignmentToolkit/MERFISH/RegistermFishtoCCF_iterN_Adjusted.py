@@ -7,6 +7,17 @@
 #  $ cd ANTsPy
 #  $ python3 setup.py install
 #
+# Step 3: Section based deforable registeration between the MERFISH images and Allen CCF
+#
+#    Script: RegistermFishtoCCF_iterN_Adjusted.py
+#    Inputs:
+#        outname - name prefix attached to results
+#        mFishInDir - input directory with all the input MERFISH images and labels
+#        CCFInDir - output directory with globally aligned Allen CCF, from Step 2
+#        outDirBase - Base directory where results will be saved
+#    Outputs:
+#        Folder with registered MERFISH images, and deformation fields for transforming data from the MERFISH brain to the Allen CCF
+
 
 import ants
 #from glob import glob

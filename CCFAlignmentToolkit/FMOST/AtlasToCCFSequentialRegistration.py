@@ -7,6 +7,19 @@
 #  $ cd ANTsPy
 #  $ python3 setup.py install
 #
+#
+# Description: This script is for a one time registration of the Average fMOST into the Allen CCF
+# Inputs: Atlas & labels for fMOST atlas and CCF. Edit the following variables:
+#    fMOSTtoCCFAtlasDir - Base Directory
+#    fMOST_template_fn - fMOST Atlas constructed above
+#    CCF_template_fn - Allen CCF atlas
+#    fMOST_Labels_fn - Annotomical labels/landmarks for fMOST atlas
+#    CCF_Labels_fn - Annotomical labels/landmarks for ALLEN CCF atlas
+#
+# Outputs: Transformation field and transformed atlas between fMOST atlas and Allen CCF:
+#    ../fMOSTtoCCFWarp/fMOSTtoCCFfwdTransform.nii.gz
+#    ../fMOSTtoCCFWarp/fMOSTLabelsWarpedtoCCF_final.nii.gz
+
 
 import ants
 #from glob import glob
@@ -15,6 +28,10 @@ import shutil
 import os
 import sys
 import numpy as np
+
+
+
+
 
 if True:
     #load atlases

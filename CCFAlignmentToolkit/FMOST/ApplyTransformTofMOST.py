@@ -1,3 +1,16 @@
+#    Function: ApplyTransfromTofMOST.py
+#    Description: Function for applying transforms from previous registrations to new fMOST images        
+#    Inputs:
+#        fMOSTFile - new fMOST image to apply transformations
+#        ImgTofMOSTAtlasWarpDir - Directory containing the image to atlas registration results (see above)
+#        fMOSTtoCCFAtlasDir - Directory containing the atlas to atlas registration results (see above)
+#        outDir - Output directory
+#    Outputs: Outputs are saved to the folder {outDir} specified at input. With the prefix {outName} derived from the input fMOST image name.
+#        _{outDir}/{outname}WarpedToCCF.nii.gz - Image transformed to Allen CCF
+#        _{outDir}/{outname}WarpedTofMOST.nii.gz - Image transformed to the fMOST Atlas
+
+
+
 import ants
 from glob import glob
 from pathlib import Path

@@ -7,6 +7,8 @@
 #  $ cd ANTsPy
 #  $ python3 setup.py install
 #
+# Description: This function preprocess an input image (fMOSTFile) to remove intensity
+# and stripe artifacts
 
 import ants
 #from glob import glob
