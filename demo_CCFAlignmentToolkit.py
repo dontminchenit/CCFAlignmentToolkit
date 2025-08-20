@@ -11,6 +11,8 @@
 #
 #   #pip install antspyx
 #
+#This is an example script for running various functions for fMOST image registration to the CCF
+#Uncomment the sections below as needed.
 
 import ants
 from glob import glob
