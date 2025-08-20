@@ -38,7 +38,7 @@ These are scripts that only need to be run once. The final product is a register
 These are functions the users will run given new fMOST images or neuron reconstructions
 
 ### Registration of new fMOST image to fMOST atlas
-- Function: **RegisterfMOSTtoCCF.py**
+- Function: **RegisterfMOSTtoCCFGlobal.py**
 - Inputs: New fMOST image (downsampled) and fMOST average atlas
   - fMOSTFile - fMOST file to be registered
   - fMOSTtoCCFAtlasDir - Directory containing the atlas to atlas registration results (see above)
